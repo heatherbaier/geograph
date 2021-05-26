@@ -1,1 +1,21 @@
-# sage
+## GeoGraph
+
+### Sample GeoGraph's
+
+<img src="./plots/B1-1.png">
+
+<img src="./plots/B1-2.png">
+
+<img src="./plots/B1-3.png">
+
+<img src="./plots/B1-4.png">
+
+<img src="./plots/B1-5.png">
+
+<img src="./plots/B1-6.png">
+
+<img src="./plots/B1-7.png">
+
+<img src="./plots/B1-8.png">
+
+<img src="./plots/B1-9.png">

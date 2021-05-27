@@ -167,6 +167,6 @@ if __name__ == "__main__":
     degrees = random.randint(1, 4)
 
     print("Making graph.")
-    g = GeoGraph(target_id, gdf, df, degrees = 10)
+    g = GeoGraph(target_id, gdf, df, degrees = degrees)
     g.show(box = False)
     plt.savefig('./test.png')

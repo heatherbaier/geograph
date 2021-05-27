@@ -19,3 +19,17 @@
 <img src="./plots/B1-8.png">
 
 <img src="./plots/B1-9.png">
+
+
+
+### Sample GeoPath's
+
+<img src="./path_plots/test1.png">
+
+<img src="./path_plots/test_path copy.png">
+
+<img src="./path_plots/test_path copy 2.png">
+
+<img src="./path_plots/test_path copy 3.png">
+
+<img src="./path_plots/test_path copy 4.png">

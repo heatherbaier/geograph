@@ -2,22 +2,25 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import pandas as pd
 import numpy as np
+import random
 
 class GeoGraph():
 
-    def __init__(self, target_id, gdf, df, degrees = 1):
+    def __init__(self, target_id, gdf, df, x = False, degrees = 1):
         self.target_id = target_id
         self.gdf = gdf
         self.degrees = degrees
         self.df = df
         self.degree_dict = {}
         self.neighbors = self.__get_spatial_neighbors()
-        self.x = self.__get_x()
         self.neighbors_recoded = self.__index_neighbors()
         self.adj_list = self.__make_adj_list()
         self.y = self.__get_y()
         self.color_dict = {0: "#ffce83", 1: "#ffc47a", 2: "#ffb971", 3: "#ffa850", 4: "#ff9325"}
-        
+        if x:
+            self.x = self.__get_x()
+
+
     def __get_spatial_neighbors(self):
         """
         - Returns a dictionary with the keys being the shapeID's of the municipalities in the graph 
@@ -144,4 +147,26 @@ class GeoGraph():
         return 'SpatialGraph(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])"
 
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
+    gdf = gpd.read_file("./MEX/MEX_ADM2_fixedInternalTopology.shp")
+    gdf = gdf[['shapeID', 'geometry']]
+    # gdf.head()
+
+    match = pd.read_csv("./gB_IPUMS_match.csv")
+    match = match[['shapeID', 'MUNI2015']]
+    ref_dict = dict(zip(match['MUNI2015'], match['shapeID']))
+    # match.head()
+
+    df = pd.read_csv("./mexico2010.csv")
+    df = df[['GEO2_MX', 'sum_income', 'total_pop', 'unrel_ppl', 'perc_urban', 'sum_num_intmig']]
+    df['GEO2_MX'] = df['GEO2_MX'].astype(str).str.replace("484", "").astype(int).map(ref_dict)
+    df = df.rename(columns = {'GEO2_MX': 'shapeID'})
+    # df.head()
+
+    target_id = random.choice(df['shapeID'].to_list())
+    degrees = random.randint(1, 4)
+
+    print("Making graph.")
+    g = GeoGraph(target_id, gdf, df, degrees = 10)
+    g.show(box = False)
+    plt.savefig('./test.png')

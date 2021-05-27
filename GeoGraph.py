@@ -14,9 +14,9 @@ class GeoGraph():
         self.degree_dict = {}
         self.neighbors = self.__get_spatial_neighbors()
         self.neighbors_recoded = self.__index_neighbors()
+        self.edge_list = self.__make_edge_list()
         self.adj_list = self.__make_adj_list()
         self.y = self.__get_y()
-        self.color_dict = {0: "#ffce83", 1: "#ffc47a", 2: "#ffb971", 3: "#ffa850", 4: "#ff9325"}
         if x:
             self.x = self.__get_x()
 
@@ -91,6 +91,13 @@ class GeoGraph():
         for k in self.neighbors.keys():
             new_neighbors[neighbors_ref_dict[k]] = [neighbors_ref_dict[i] for i in self.neighbors[k]]
         return new_neighbors
+
+
+    def __make_edge_list(self):
+        edge_list = []
+        for k,v in self.neighbors_recoded.items():
+            [edge_list.append([k, cur_v]) for cur_v in v]
+        return edge_list
 
 
     def __make_adj_list(self):

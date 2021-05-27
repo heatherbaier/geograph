@@ -2,13 +2,22 @@ import matplotlib.pyplot as plt
 import geopandas as gpd
 import pandas as pd
 import numpy as np
+import argparse
+import shapely#.geometry import Point, LineString
 import random
+import os
 
 class GeoGraph():
 
     def __init__(self, target_id, gdf, df, x = False, degrees = 1):
-        self.target_id = target_id
+        
         self.gdf = gdf
+        
+        if target_id == 'search':
+            self.target_id = self.__find_central_box()
+        else:
+            self.target_id = target_id
+        
         self.degrees = degrees
         self.df = df
         self.degree_dict = {}
@@ -16,10 +25,26 @@ class GeoGraph():
         self.neighbors_recoded = self.__index_neighbors()
         self.edge_list = self.__make_edge_list()
         self.adj_list = self.__make_adj_list()
-        self.y = self.__get_y()
-        if x:
+        if df is not None:
             self.x = self.__get_x()
+            self.y = self.__get_y()
 
+
+    def __find_central_box(self):
+
+        centroid = self.gdf.dissolve(by = 'muni').centroid
+        inp, res = self.gdf.sindex.query_bulk(centroid.geometry, predicate='intersects')
+        
+        count = 0
+        while len(res) == 0:
+            centroid = gpd.GeoSeries([shapely.geometry.Point(centroid.x - .02, centroid.y)])
+            inp, res = self.gdf.sindex.query_bulk(centroid.geometry, predicate='intersects')
+            
+            count += 1
+            if count > 5:
+                return str(0)
+
+        return str(res[0])
 
     def __get_spatial_neighbors(self):
         """
@@ -151,29 +176,52 @@ class GeoGraph():
 
 
     def __str__(self):
-        return 'SpatialGraph(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])"
+        if self.df is not None:
+            return 'GeoGraph(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "], y = " + str(self.y) + ")" 
+        else:
+            return "GeoGraph(adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])" 
 
 
 if __name__ == "__main__":
-    gdf = gpd.read_file("./MEX/MEX_ADM2_fixedInternalTopology.shp")
-    gdf = gdf[['shapeID', 'geometry']]
-    # gdf.head()
 
-    match = pd.read_csv("./gB_IPUMS_match.csv")
-    match = match[['shapeID', 'MUNI2015']]
-    ref_dict = dict(zip(match['MUNI2015'], match['shapeID']))
-    # match.head()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test", help="Path to exported Mexico ADM2 shapefile")
+    args = parser.parse_args()
 
-    df = pd.read_csv("./mexico2010.csv")
-    df = df[['GEO2_MX', 'sum_income', 'total_pop', 'unrel_ppl', 'perc_urban', 'sum_num_intmig']]
-    df['GEO2_MX'] = df['GEO2_MX'].astype(str).str.replace("484", "").astype(int).map(ref_dict)
-    df = df.rename(columns = {'GEO2_MX': 'shapeID'})
-    # df.head()
+    if args.test == 'adm':
 
-    target_id = random.choice(df['shapeID'].to_list())
-    degrees = random.randint(1, 4)
+        gdf = gpd.read_file("./MEX/MEX_ADM2_fixedInternalTopology.shp")
+        gdf = gdf[['shapeID', 'geometry']]
+        # gdf.head()
 
-    print("Making graph.")
-    g = GeoGraph(target_id, gdf, df, degrees = degrees)
-    g.show(box = False)
-    plt.savefig('./test.png')
+        match = pd.read_csv("./gB_IPUMS_match.csv")
+        match = match[['shapeID', 'MUNI2015']]
+        ref_dict = dict(zip(match['MUNI2015'], match['shapeID']))
+        # match.head()
+
+        df = pd.read_csv("./mexico2010.csv")
+        df = df[['GEO2_MX', 'sum_income', 'total_pop', 'unrel_ppl', 'perc_urban', 'sum_num_intmig']]
+        df['GEO2_MX'] = df['GEO2_MX'].astype(str).str.replace("484", "").astype(int).map(ref_dict)
+        df = df.rename(columns = {'GEO2_MX': 'shapeID'})
+        # df.head()
+
+        target_id = random.choice(df['shapeID'].to_list())
+        degrees = random.randint(1, 4)
+
+        print("Making graph.")
+        g = GeoGraph(target_id, gdf, df, degrees = degrees)
+        g.show(box = False)
+        plt.savefig('./test_adm.png')
+
+    elif args.test == 'box':
+
+        options = [i for i in os.listdir("/home/hbaier/Desktop/temp/data/MEX4/imagery_bboxes/") if ".shp" in i]
+        index = random.randint(0, len(options))
+
+        gdf2 = gpd.read_file("/home/hbaier/Desktop/temp/data/MEX4/imagery_bboxes/" + options[index])
+        gdf2['boxID'] = [str(i) for i in range(len(gdf2))]
+        gdf2.columns = ['muni', 'geometry', 'shapeID']
+        gdf2.head()
+
+        GeoGraph('search', gdf2, df = None, degrees = 10).show(box = False)
+        plt.savefig('./test_box.png')

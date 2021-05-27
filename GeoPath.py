@@ -12,7 +12,7 @@ warnings.filterwarnings('ignore')
 
 class GeoPath():
 
-    def __init__(self, sending_id, recieving_id, gdf, df = None, x = False, degrees = 1):
+    def __init__(self, sending_id, recieving_id, gdf, df = None, degrees = 1):
 
 
         """
@@ -32,8 +32,9 @@ class GeoPath():
         self.neighbors_recoded = self.__index_neighbors()
         self.edge_list = self.__make_edge_list()
         self.adj_list = self.__make_adj_list()
-        self.x = self.__get_x()
-        self.y = self.__get_y()
+        if df is not None:
+            self.x = self.__get_x()
+            self.y = self.__get_y()
 
 
     def __calc_centroid_x(self, x):
@@ -199,7 +200,10 @@ class GeoPath():
 
 
     def __str__(self):
-        return 'GeoPath(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "], y = " + str(self.y) + ")" 
+        if self.df is not None:
+            return 'GeoPath(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "], y = " + str(self.y) + ")" 
+        else:
+            return "GeoPath(adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])" 
 
 
 

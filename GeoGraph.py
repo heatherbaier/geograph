@@ -9,9 +9,25 @@ import os
 
 class GeoGraph():
 
-    def __init__(self, target_id, gdf, df, x = False, degrees = 1):
+    def __init__(self, target_id, gdf, load_data = False, degrees = 1):
+
+
+        """
+        Args:
+            - traget_id: If loading data for a municiaplity shapefile, should be the 
+              unique shapeID of a municiaplity, otherwise use 'search' to find the central 
+              most node in a shapefile (use this when you load in the imagery boxes)
+            - gdf: dataframe with geometry and x & y data IF load_data == True
+            - degrees: number of degrees away fromt he target municiaplity to contruct the graph
+        __init__ variables:
+            - degree_dict: dictionary with keys 0...self.degrees with the values being the list of 
+              shapeID's that are k degrees from the target
+            - neighbors: dictionary with the keys being each of the municiaplites within self.degrees
+              from the target and the values being that municiaplites neighbors (that are no further th)
+        """
         
         self.gdf = gdf
+        self.load_data = load_data
         
         if target_id == 'search':
             self.target_id = self.__find_central_box()
@@ -19,13 +35,12 @@ class GeoGraph():
             self.target_id = target_id
         
         self.degrees = degrees
-        self.df = df
-        self.degree_dict = {}
+        self.degree_dict = {} # constructed in __get_spatial_neighbors
         self.neighbors = self.__get_spatial_neighbors()
         self.neighbors_recoded = self.__index_neighbors()
         self.edge_list = self.__make_edge_list()
         self.adj_list = self.__make_adj_list()
-        if df is not None:
+        if self.load_data:
             self.x = self.__get_x()
             self.y = self.__get_y()
 
@@ -92,18 +107,20 @@ class GeoGraph():
 
     def __get_x(self):
         """
-        Returns a numpy array of shape(len(self.neighbors.keys()), len(self.neighbors.keys())) storing
+        Returns a numpy array of shape(len(self.neighbors.keys()), lens(self.neighbors.keys())) storing
         the feature data for all of the municipaities in the graph in the order self.neighbors.keys()
         """
         all_x = []
         for k in self.neighbors.keys():
-            cur_data = self.df[self.df['shapeID'] == k].values
+            cur_data = self.gdf[self.gdf['shapeID'] == k].drop(['shapeID', 'geometry', 'sum_num_intmig'], axis = 1).values
             if len(cur_data) != 0:
-                all_x.append(cur_data[0][1:-1]) 
+                all_x.append(cur_data[0]) 
             else:
                 all_x.append(np.array([0] * 4))
 
-        return np.array(all_x, dtype = np.float32)
+        all_x = np.array(all_x, dtype = np.float32)
+
+        return np.nan_to_num(all_x)
 
 
     def __index_neighbors(self):
@@ -146,7 +163,7 @@ class GeoGraph():
         """
         Returns the y value of the target municipality if there is data, otherwise returns 0
         """
-        y = self.df[self.df['shapeID'] == self.target_id]['sum_num_intmig'].values
+        y = self.gdf[self.gdf['shapeID'] == self.target_id]['sum_num_intmig'].values
         if len(y) == 0:
             return np.array([0])
         else:
@@ -176,7 +193,7 @@ class GeoGraph():
 
 
     def __str__(self):
-        if self.df is not None:
+        if self.load_data:
             return 'GeoGraph(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "], y = " + str(self.y) + ")" 
         else:
             return "GeoGraph(adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])" 

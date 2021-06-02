@@ -9,7 +9,7 @@ import os
 
 class GeoGraph():
 
-    def __init__(self, target_id, gdf, load_data = False, degrees = 1):
+    def __init__(self, target_id, gdf, load_data = False, degrees = 1, boxes = False):
 
 
         """
@@ -28,6 +28,7 @@ class GeoGraph():
         
         self.gdf = gdf
         self.load_data = load_data
+        self.boxes = boxes
         
         if target_id == 'search':
             self.target_id = self.__find_central_box()
@@ -72,9 +73,12 @@ class GeoGraph():
         neighbors = target_neighbors
 
         all_neighbors = {}
-        all_neighbors[self.target_id] = target_neighbors
+        if not self.boxes:
+            all_neighbors[self.target_id] = target_neighbors
         self.degree_dict[0] = [self.target_id]
         self.degree_dict[1] = [i for i in target_neighbors if i != self.target_id]
+
+        
 
         # Get neighbors
         for i in range(self.degrees):
@@ -128,11 +132,17 @@ class GeoGraph():
         Replaces each municiapaity shapeID string with a unique index uin range(0, len(self.neighbors.keys()). 
         Format & ordering is the exact same as self.neighbirs
         """
-        neighbors_ref_dict = dict(zip(self.neighbors.keys(), [i for i in range(len(self.neighbors.keys()))]))
-        new_neighbors = {}
-        for k in self.neighbors.keys():
-            new_neighbors[neighbors_ref_dict[k]] = [neighbors_ref_dict[i] for i in self.neighbors[k]]
-        return new_neighbors
+        if not self.boxes:
+            neighbors_ref_dict = dict(zip(self.neighbors.keys(), [i for i in range(len(self.neighbors.keys()))]))
+            new_neighbors = {}
+            for k in self.neighbors.keys():
+                new_neighbors[neighbors_ref_dict[k]] = [neighbors_ref_dict[i] for i in self.neighbors[k]]
+            return new_neighbors
+        else:
+            new_neighbors = {}
+            for k in self.neighbors.keys():
+                new_neighbors[int(k)] = [int(i) for i in self.neighbors[k]]
+            return new_neighbors
 
 
     def __make_edge_list(self):
@@ -193,10 +203,12 @@ class GeoGraph():
 
 
     def __str__(self):
+        return "yo"
         if self.load_data:
             return 'GeoGraph(x = [' + str(self.x.shape[0]) + "," + str(self.x.shape[1]) + "], adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "], y = " + str(self.y) + ")" 
         else:
             return "GeoGraph(adj_list = [" + str(self.adj_list.shape[0]) + "," + str(self.adj_list.shape[1]) + "])" 
+
 
 
 if __name__ == "__main__":
@@ -207,28 +219,29 @@ if __name__ == "__main__":
 
     if args.test == 'adm':
 
-        gdf = gpd.read_file("./MEX/MEX_ADM2_fixedInternalTopology.shp")
+        gdf = gpd.read_file("/home/hbaier/Desktop/archive/CAOE/data/MEX/MEX_ADM2_fixedInternalTopology.shp")
         gdf = gdf[['shapeID', 'geometry']]
-        # gdf.head()
 
-        match = pd.read_csv("./gB_IPUMS_match.csv")
+        match = pd.read_csv("./data/gB_IPUMS_match.csv")
         match = match[['shapeID', 'MUNI2015']]
         ref_dict = dict(zip(match['MUNI2015'], match['shapeID']))
-        # match.head()
 
-        df = pd.read_csv("./mexico2010.csv")
+        df = pd.read_csv("./data/mexico2010.csv")
         df = df[['GEO2_MX', 'sum_income', 'total_pop', 'unrel_ppl', 'perc_urban', 'sum_num_intmig']]
         df['GEO2_MX'] = df['GEO2_MX'].astype(str).str.replace("484", "").astype(int).map(ref_dict)
         df = df.rename(columns = {'GEO2_MX': 'shapeID'})
-        # df.head()
 
-        target_id = random.choice(df['shapeID'].to_list())
+        gdf = pd.merge(gdf, df, on = 'shapeID')#.head()
+        
+        target_id = random.choice(gdf['shapeID'].to_list())
         degrees = random.randint(1, 4)
 
+
         print("Making graph.")
-        g = GeoGraph(target_id, gdf, df, degrees = degrees)
+        g = GeoGraph(target_id, gdf, degrees = degrees, load_data = True, boxes = False)
         g.show(box = False)
         plt.savefig('./test_adm.png')
+
 
     elif args.test == 'box':
 
@@ -240,5 +253,7 @@ if __name__ == "__main__":
         gdf2.columns = ['muni', 'geometry', 'shapeID']
         gdf2.head()
 
-        GeoGraph('search', gdf2, df = None, degrees = 10).show(box = False)
+        print("Making graph.")
+        g = GeoGraph('search', gdf2, degrees = 10, load_data = False, boxes = True)
+        g.show(box = False)
         plt.savefig('./test_box.png')

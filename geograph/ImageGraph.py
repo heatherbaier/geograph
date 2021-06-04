@@ -163,13 +163,34 @@ class ImageGraph():
 
 if __name__ == "__main__":
 
-    adms = [i for i in os.listdir("./data/") if "-B" in i]
-    print("ADM's available: ", adms)
-    index = random.randint(0, len(adms))
-    adm_id = adms[0]
+    parser = argparse.ArgumentParser()
+    parser.add_argument("test", help="Path to exported Mexico ADM2 shapefile")
+    args = parser.parse_args()
 
-    print("Selected ADM: ", adm_id)
+    if args.test == 'random':
 
-    ig = ImageGraph(adm_id = adm_id)
-    ig.show()
-    plt.savefig("./test.png")
+        adms = [i for i in os.listdir("./data/") if "-B" in i]
+        print("ADM's available: ", adms)
+        index = random.randint(0, len(adms) - 1)
+        adm_id = adms[index]
+
+        print("Selected ADM: ", adm_id)
+
+        ig = ImageGraph(adm_id = adm_id)
+        ig.show()
+        plt.savefig("./test.png")
+
+    else:
+
+        import landsat_prep as lp
+
+        GB_PATH = "./data/MEX/MEX_ADM2_fixedInternalTopology.shp"
+        ADM_ID = args.test
+        ISO = "MEX"
+        IC = "LANDSAT/LT05/C01/T1"
+
+        lp.prep_landsat(GB_PATH, ISO, ADM_ID, "2010", "1", IC)
+
+        ig = ImageGraph(adm_id = ADM_ID)
+        ig.show()
+        plt.savefig("./test.png")

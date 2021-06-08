@@ -7,19 +7,19 @@ This repo contaisn the code to read in spatial data in graph format. Functions p
 
 ### Sample GeoGraph's
 
-<img src="./graph_plots/B1-1.png">
+<!-- <img src="./graph_plots/B1-1.png">
 
 <img src="./graph_plots/B1-2.png">
 
 <img src="./graph_plots/B1-3.png">
 
-<img src="./graph_plots/B1-4.png">
+<img src="./graph_plots/B1-4.png"> -->
 
-<img src="./graph_plots/B1-5.png">
+<!-- <img src="./graph_plots/B1-5.png">
 
 <img src="./graph_plots/B1-6.png">
 
-<img src="./graph_plots/B1-7.png">
+<img src="./graph_plots/B1-7.png"> -->
 
 <img src="./graph_plots/B1-8.png">
 
@@ -29,12 +29,20 @@ This repo contaisn the code to read in spatial data in graph format. Functions p
 
 ### Sample GeoPath's
 
-<img src="./path_plots/test1.png">
+<!-- <img src="./path_plots/test1.png"> -->
 
 <img src="./path_plots/test_path copy.png">
 
-<img src="./path_plots/test_path copy 2.png">
+<!-- <img src="./path_plots/test_path copy 2.png">
 
-<img src="./path_plots/test_path copy 3.png">
+<img src="./path_plots/test_path copy 3.png"> -->
 
 <img src="./path_plots/test_path copy 4.png">
+
+
+### Sample ImageGraph's
+
+<img src="./image_plots/test copy.png">
+
+<img src="./image_plots/test copy 2.png">
+

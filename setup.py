@@ -9,5 +9,6 @@ setup(
     author_email='hmbaier@email.wm.edu',
     license='unlicense',
     packages=['geograph'],
-    zip_safe=False
+    install_requires = ["matplotlib", "rasterio", "torchvision", "joblib", "shapely", "geopandas", "PIL"],
+    zip_safe = False
 )

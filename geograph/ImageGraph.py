@@ -45,6 +45,7 @@ class ImageGraph():
         self.degree_dict = {}
         self.target_id = 0
         self.degrees = 100
+        self.num_nodes = len(self.neighbors.keys())
 
         self.x = self.__load_imagery()
         self.neighbors = self.__get_spatial_neighbors()

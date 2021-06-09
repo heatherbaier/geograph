@@ -45,13 +45,14 @@ class ImageGraph():
         self.degree_dict = {}
         self.target_id = 0
         self.degrees = 100
-        # self.num_nodes = len(self.neighbors.keys())
+        
 
         self.x = self.__load_imagery()
         self.neighbors = self.__get_spatial_neighbors()
         self.edge_list = self.__make_edge_list()
         self.adj_list = self.__make_adj_list()
         self.adj_matrix = self.__make_adj_matrix()
+        self.num_nodes = len(self.neighbors.keys())
 
     def __load_image(self, image_path):
         image_path = os.path.join(self.imagery_dir, image_path)

@@ -11,6 +11,7 @@ import shapely
 import random
 import shutil
 import torch
+import json
 import os
 
 from rasterio import plot
@@ -19,7 +20,7 @@ from rasterio.plot import show
 
 class ImageGraph():
 
-    def __init__(self, adm_id):
+    def __init__(self, adm_id, dta = None):
 
         """
         Args:
@@ -53,6 +54,10 @@ class ImageGraph():
         self.adj_list = self.__make_adj_list()
         self.adj_matrix = self.__make_adj_matrix()
         self.num_nodes = len(self.neighbors.keys())
+
+        if dta is not None:
+            self.dta_path = dta
+            self.y = self.__get_y()
 
     def __load_image(self, image_path):
         image_path = os.path.join(self.imagery_dir, image_path)
@@ -138,6 +143,13 @@ class ImageGraph():
         for i in range(len(self.gdf)):
             adj_matrix[i][i] = 1
         return adj_matrix
+
+
+    def __get_y(self):
+        m = open(self.dta_path,)
+        data = json.load(m)
+        m.close()
+        return data[self.adm_id]
 
 
     def show(self):

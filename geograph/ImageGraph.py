@@ -20,7 +20,7 @@ from rasterio.plot import show
 
 class ImageGraph():
 
-    def __init__(self, adm_id, dta = None):
+    def __init__(self, imagery_dir, adm_id, dta = None):
 
         """
         Args:
@@ -37,7 +37,7 @@ class ImageGraph():
         """
 
         self.adm_id = adm_id 
-        self.target_path = os.path.join("./data/", adm_id)
+        self.target_path = os.path.join(imagery_dir, adm_id)
         self.imagery_dir = os.path.join(self.target_path, "pngs")
         self.zip_path = os.path.join(self.target_path, "imagery")
         self.temp_path = os.path.join(self.target_path, "temp")

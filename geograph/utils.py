@@ -8,11 +8,12 @@ import os
 class ImageGraphLoader():
 
     class Dataset():
-        def __init__(self, x, y, edge_index, neighbors, batch):
+        def __init__(self, x, y, edge_index, neighbors, adj_matrix, batch):
             self.x = x
             self.y = y
             self.edge_index = edge_index
             self.neighbors = neighbors
+            self.adj_matrix = adj_matrix
             self.batch = batch
 
     def __init__(self, data_dir, iso, dta_path, batch_size):
@@ -29,6 +30,15 @@ class ImageGraphLoader():
 
         self.data = []
         [self.data.append(self.__load_graph(np.array(self.image_graphs)[batch])) for batch in self.indexes]
+
+    
+    def __make_adj_matrix(self, edge_list, dim):
+        adj_matrix = np.zeros((dim, dim))
+        for edge in edge_list:
+            adj_matrix[edge[0]][edge[1]] = 1
+        for i in range(dim):
+            adj_matrix[i][i] = 1
+        return adj_matrix
 
 
     def __load_graph(self, batch):
@@ -64,5 +74,7 @@ class ImageGraphLoader():
         for i in range(len(edge_indices)):
             all_edge_indices.append(np.array(edge_indices[i]) + np.sum(np.array(node_nums)[:i]))
         edge_indices = torch.tensor(np.concatenate(all_edge_indices))
+
+        adj_matrix = self.__make_adj_matrix(edge_indices, len(neighbors))
         
-        return self.Dataset(xs, ys, edge_indices, neighbors, batch_ids)
+        return self.Dataset(xs, ys, edge_indices, neighbors, adj_matrix, batch_ids)

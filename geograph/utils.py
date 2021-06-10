@@ -8,10 +8,11 @@ import os
 class ImageGraphLoader():
 
     class Dataset():
-        def __init__(self, x, y, edge_index, batch):
+        def __init__(self, x, y, edge_index, neighbors, batch):
             self.x = x
             self.y = y
             self.edge_index = edge_index
+            self.neighbors = neighbors
             self.batch = batch
 
     def __init__(self, data_dir, iso, dta_path, batch_size):
@@ -32,6 +33,19 @@ class ImageGraphLoader():
 
     def __load_graph(self, batch):
 
+        # Neighbors
+        node_nums = [i.num_nodes for i in batch]
+        neighbors = [i.neighbors for i in batch]
+        keys, vals = [], []
+        for i in range(len(node_nums)):
+            keys.append(np.array(list(neighbors[i].keys())) + np.sum(np.array(node_nums)[:i]))
+            vals_list = list(neighbors[i].values())
+            [vals.append(v + np.sum(np.array(node_nums)[:i])) for v in vals_list]
+        keys = [i.tolist() for i in keys]
+        keys = [item for sublist in keys for item in sublist]
+        vals = [i.tolist() for i in vals]
+        neighbors = dict(zip(keys, vals))
+
         # X's 
         xs = torch.cat([i.x for i in batch])
 
@@ -40,7 +54,6 @@ class ImageGraphLoader():
 
         # Batch ID's
         batch_ids = []
-        node_nums = [i.num_nodes for i in batch]
         for i in range(len(node_nums)):
             batch_ids.append(np.array([i for n in range(node_nums[i])], dtype = np.float32))        
         batch_ids = torch.tensor(np.concatenate(batch_ids))
@@ -52,4 +65,4 @@ class ImageGraphLoader():
             all_edge_indices.append(np.array(edge_indices[i]) + np.sum(np.array(node_nums)[:i]))
         edge_indices = torch.tensor(np.concatenate(all_edge_indices))
         
-        return self.Dataset(xs, ys, edge_indices, batch_ids)
+        return self.Dataset(xs, ys, edge_indices, neighbors, batch_ids)
